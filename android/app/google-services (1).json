@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "540879870619",
+    "project_id": "yalah-e24e2",
+    "storage_bucket": "yalah-e24e2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:540879870619:android:ad4fab09837549582a843e",
+        "android_client_info": {
+          "package_name": "com.example.yalah"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "540879870619-qqoddb9785g6uq1fnlvrdvlb1mqbf6nt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.yalah",
+            "certificate_hash": "ac1af4019dadfbdc4bb4b2dd378ad613c0319012"
+          }
+        },
+        {
+          "client_id": "540879870619-od4ffhc8nvhasplcr0adnanrro39fepd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAP3R2IqMdY9u7IvJtEfTs8f6APi-d7cT0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "540879870619-od4ffhc8nvhasplcr0adnanrro39fepd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
