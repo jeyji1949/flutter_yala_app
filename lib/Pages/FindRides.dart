@@ -9,6 +9,7 @@ import 'package:google_maps_webservice/places.dart' as flutter_google_places;
 import 'package:google_maps_webservice/places.dart';
 import 'package:google_place/google_place.dart';
 import 'package:yalah/Assistants/assistant_methods.dart';
+import 'package:yalah/Pages/SearchedRidesPage.dart';
 import 'package:yalah/components/SideBar.dart';
 import 'package:yalah/infoHadler/app_info.dart';
 import 'package:yalah/map/Map_key.dart';
@@ -385,10 +386,23 @@ class _FindRidesPageState extends State<FindRidesPage> {
       // Display trip information
       print('Distance: ${directions.distance}');
       print('Duration: ${directions.duration}');
+
+       Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => SearchedRidesPage(
+        origin: origin,
+        destination: destination,
+      ),
+    ),
+  );
+  
         } catch (e) {
       print('Error searching for ride: $e');
     }
   }
+
+
 
   Future<LatLng?> _convertAddressToLatLng(String address) async {
     try {
