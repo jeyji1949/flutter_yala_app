@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geocoder2/geocoder2.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -36,8 +37,11 @@ class _FindRidesPageState extends State<FindRidesPage> {
     target: LatLng(37.42796133580664, -122.085749655962),
     zoom: 14.4746,
   );
+  static const LatLng _pApplePark =
+      LatLng(38.42796133580664, -122.085749655962);
 
-  GlobalKey<ScaffoldState> _scaffoldState = GlobalKey<ScaffoldState>();
+  static final CameraPosition initialCameraPosition =
+      CameraPosition(target: LatLng(33.154896, 36.289590), zoom: 14.4746);
 
   double bottomPaddingOfMap = 0;
 
@@ -45,23 +49,14 @@ class _FindRidesPageState extends State<FindRidesPage> {
   Set<Marker> markerSet = {};
   Set<Circle> circleSet = {};
 
-  String userName = "";
-  String userEmail = "";
-
-  bool openNavigationDrawer = true;
-  bool activeNearbyDriverKeysLoaded = false;
-
-  BitmapDescriptor? activeNearbyIcon;
-
-  late GooglePlace googlePlace;
-
+  LatLng? originLatLng;
+  LatLng? destinationLatLng;
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
     return Consumer<ThemeModel>(
         builder: (context, ThemeModel themeNotifier, child) {
       return Scaffold(
-        key: _scaffoldState,
         appBar: AppBar(
           backgroundColor: const Color(0xff60E1E0),
           elevation: 0,
@@ -100,32 +95,11 @@ class _FindRidesPageState extends State<FindRidesPage> {
                 padding: EdgeInsets.only(
                     top: size.height * 0.1, bottom: size.height * 0.02),
                 child: GoogleMap(
-                  initialCameraPosition: _kGooglePlex,
-                  myLocationEnabled: true,
-                  zoomControlsEnabled: true,
-                  mapType: MapType.normal,
-                  zoomGesturesEnabled: true,
-                  polylines: polylineSet,
-                  markers: markerSet,
-                  circles: circleSet,
-                  onMapCreated: (GoogleMapController controller) {
-                    _controller.complete(controller);
-                    googleMapController = controller;
-                    setState(() {});
-
-                    locateUserPosition();
-                  },
-                  onCameraMove: (CameraPosition? position) {
-                    if (position != null && pickLocation != position.target) {
-                      setState(() {
-                        pickLocation = position.target;
-                      });
-                    }
-                  },
-                  onCameraIdle: () {
-                    getAdressFromLatLng();
-                  },
-                ),
+                    initialCameraPosition: initialCameraPosition,
+                    mapType: MapType.normal,
+                    onMapCreated: (GoogleMapController controller) {
+                      _controller.complete(controller);
+                    }),
               ),
               const SizedBox(height: 20),
               Positioned(
@@ -159,7 +133,7 @@ class _FindRidesPageState extends State<FindRidesPage> {
                                 hintText: "From",
                               ),
                               onTap: () async {
-                                performAutoComplete();
+                                performOriginAutoComplete();
                               },
                             ),
                           ),
@@ -181,14 +155,24 @@ class _FindRidesPageState extends State<FindRidesPage> {
                                 hintText: "To",
                               ),
                               onTap: () async {
-                                performAutoComplete();
+                                performDestinationAutoComplete();
                               },
                             ),
                           ),
                         ),
                         IconButton(
                           icon: Icon(Icons.search),
-                          onPressed: () {},
+                          onPressed: () async {
+                            if (originLatLng != null &&
+                                destinationLatLng != null) {
+                              List<LatLng> polylinePoints =
+                                  await getPolylinePoints(
+                                originLatLng!,
+                                destinationLatLng!,
+                              );
+                              generatePolylineFromPoints(polylinePoints);
+                            }
+                          },
                         ),
                       ],
                     ),
@@ -334,76 +318,46 @@ class _FindRidesPageState extends State<FindRidesPage> {
     }
   }
 
-  /*void searchForRide(String origin, String destination) async {
-    try {
-      // Convert origin and destination to coordinates
-      List<Location> originResults = await locationFromAddress(origin);
-      List<Location> destinationResults =
-          await locationFromAddress(destination);
-
-      // Get LatLng objects from coordinates
-      LatLng originLatLng = LatLng(
-        originResults.first.latitude,
-        originResults.first.longitude,
-      );
-      LatLng destinationLatLng = LatLng(
-        destinationResults.first.latitude,
-        destinationResults.first.longitude,
-      );
-
-      // Display markers for origin and destination on the map
-      Marker originMarker = Marker(
-        markerId: MarkerId('Origin'),
-        position: originLatLng,
-        infoWindow: InfoWindow(title: 'Origin'),
-      );
-
-      Marker destinationMarker = Marker(
-        markerId: MarkerId('Destination'),
-        position: destinationLatLng,
-        infoWindow: InfoWindow(title: 'Destination'),
-      );
-
-      setState(() {
-        markerSet.clear(); // Clear previous markers
-        markerSet.add(originMarker);
-        markerSet.add(destinationMarker);
+  Future<List<LatLng>> getPolylinePoints(
+      LatLng origin, LatLng destination) async {
+    List<LatLng> polylineCoordinates = [];
+    PolylinePoints polylinePoints = PolylinePoints();
+    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+      'AIzaSyCrojA-B0fYuDVeW1vButIZxo1T9V0Ab7g',
+      PointLatLng(origin.latitude, origin.longitude),
+      PointLatLng(destination.latitude, destination.longitude),
+    );
+    if (result.points.isNotEmpty) {
+      result.points.forEach((PointLatLng point) {
+        polylineCoordinates.add(LatLng(point.latitude, point.longitude));
       });
-
-      // Calculate route using Directions API
-      Directions directions = await AssitantMethods.getDirections(
-        originLatLng,
-        destinationLatLng,
-      );
-
-      // Display polyline for the route on the map
-      setState(() {
-        polylineSet.clear(); // Clear previous polylines
-        polylineSet.add(
-          Polyline(
-            polylineId: PolylineId('Route'),
-            points: directions.polylineCoordinates,
-            color: Colors.blue,
-            width: 5,
-          ),
-        );
-      });
-
-      // Display trip information
-      print('Distance: ${directions.distance}');
-      print('Duration: ${directions.duration}');
-    } catch (e) {
-      print('Error searching for ride: $e');
+    } else {
+      print(result.errorMessage);
     }
+    return polylineCoordinates;
   }
-*/
+
+  void generatePolylineFromPoints(List<LatLng> polylineCoordinates) {
+    PolylineId id = PolylineId("poly");
+    Polyline polyline = Polyline(
+      polylineId: id,
+      color: Colors.black,
+      points: polylineCoordinates,
+      width: 8,
+    );
+    setState(() {
+      polylineSet.clear();
+      polylineSet.add(polyline);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     checkIfLocationPermissionAllowed();
   }
 
-  void performAutoComplete() async {
+  void performOriginAutoComplete() async {
     const kGoogleApiKey = "AIzaSyCrojA-B0fYuDVeW1vButIZxo1T9V0Ab7g";
 
     // ignore: unused_local_variable
@@ -423,5 +377,37 @@ class _FindRidesPageState extends State<FindRidesPage> {
           flutter_google_places.Component(
               flutter_google_places.Component.country, "MAR")
         ]);
+    if (p != null) {
+      setState(() {
+        originController.text = p.description!;
+      });
+    }
+  }
+
+  void performDestinationAutoComplete() async {
+    const kGoogleApiKey = "AIzaSyCrojA-B0fYuDVeW1vButIZxo1T9V0Ab7g";
+
+    // ignore: unused_local_variable
+    Prediction? p = await PlacesAutocomplete.show(
+        context: context,
+        apiKey: kGoogleApiKey,
+        mode: Mode.overlay,
+        language: "fr",
+        offset: 0,
+        radius: 1000,
+        strictbounds: false,
+        region: "MAR",
+        types: [
+          "(cities)"
+        ],
+        components: [
+          flutter_google_places.Component(
+              flutter_google_places.Component.country, "MAR")
+        ]);
+    if (p != null) {
+      setState(() {
+        destinationController.text = p.description!;
+      });
+    }
   }
 }

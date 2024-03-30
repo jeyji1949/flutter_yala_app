@@ -1,11 +1,11 @@
 import 'package:provider/provider.dart';
-import 'package:yalah/Pages/FindRides.dart';
 import 'package:yalah/Pages/Home.dart';
 import 'package:yalah/Pages/LogIn.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:yalah/Pages/UserInfo.dart';
 import 'package:yalah/Pages/offerRides.dart';
 import 'package:yalah/theme/theme_model.dart';
 
@@ -179,6 +179,16 @@ class MyDrawer extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => OfferRidesPage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Profil'),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfilePage()),
                 );
               },
             ),

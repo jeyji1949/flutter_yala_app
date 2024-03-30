@@ -6,22 +6,27 @@ class Directions {
   String? locationID;
   double? locationLatitude;
   double? locationLongtitude;
+  List<LatLng>? polylinePoints;
 
-   List<LatLng> get polylineCoordinates => _polylineCoordinates;
-  List<LatLng> _polylineCoordinates = [];
+  // Constructor with named parameters
+  Directions({
+    this.humainReadableAddress,
+    this.locationID,
+    this.locationLatitude,
+    this.locationLongtitude,
+    this.locationName,
+    this.polylinePoints,
+  });
 
-  // Add a method to set the polyline coordinates
+  // Getter for polylineCoordinates
+  List<LatLng> get polylineCoordinates => polylinePoints ?? [];
+
+  // Setter for polylinePoints
   void setPolylineCoordinates(List<LatLng> coordinates) {
-    _polylineCoordinates = coordinates;
+    polylinePoints = coordinates;
   }
 
-  Directions(
-      {this.humainReadableAddress,
-      this.locationID,
-      this.locationLatitude,
-      this.locationLongtitude,
-      this.locationName});
-
+  // Additional properties and methods
   get distance => null;
 
   get duration => null;

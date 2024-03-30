@@ -87,11 +87,11 @@ class _OfferedRidesPageState extends State<OfferedRidesPage> {
                           SizedBox(
                             height: 10,
                           ),
-                          Text(
+                          /*Text(
                               'To: ${snapshot.data?.docs[index]['dropOffLocation']}'),
                           SizedBox(
                             height: 10,
-                          ),
+                          ),*/
                           Text(
                               'Vehicle: ${snapshot.data?.docs[index]['vehicleType']}'),
                           SizedBox(
