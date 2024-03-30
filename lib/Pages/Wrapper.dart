@@ -14,7 +14,7 @@ class WrapperPage extends StatelessWidget {
       builder: (context, snapshot) {
         //user logged in
         if (snapshot.hasData) {
-          return  FindRidesPage();
+          return const FindRidesPage();
         }
         // user not logged in
         else {
