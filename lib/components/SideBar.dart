@@ -1,4 +1,5 @@
 import 'package:provider/provider.dart';
+import 'package:yalah/Pages/FindRides.dart';
 import 'package:yalah/Pages/Home.dart';
 import 'package:yalah/Pages/LogIn.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -100,9 +101,9 @@ class MyDrawer extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         CircleAvatar(
-                          radius: 20,
-                          backgroundColor: Colors.white,
-                          child: _buildProfileImage(currentUser.uid),
+                          radius: 20, // Adjust the size as needed
+                          backgroundImage:
+                              AssetImage("Assets/images/profilimage.jpg"),
                         ),
                         SizedBox(width: 16),
                         FutureBuilder<Map<String, dynamic>>(
@@ -167,14 +168,25 @@ class MyDrawer extends StatelessWidget {
               title: Text('Home'),
               onTap: () {
                 Navigator.pushReplacement(
-                  context,
+                  context,  
                   MaterialPageRoute(builder: (context) => OfferedRidesPage()),
                 );
               },
             ),
             ListTile(
+              leading: Icon(Icons.location_on),
+              title: Text('Find a ride'),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const FindRidesPage()),
+                );
+              },
+            ),
+            ListTile(
               leading: Icon(Icons.location_pin),
-              title: Text('Offer Rides'),
+              title: Text('Offer a ride'),
               onTap: () {
                 Navigator.pushReplacement(
                   context,
@@ -193,13 +205,8 @@ class MyDrawer extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Seetings'),
-              onTap: () {},
-            ),
-            ListTile(
-              leading: Icon(Icons.help),
-              title: Text('Help'),
+              leading: Icon(Icons.sos),
+              title: Text('SOS'),
               onTap: () {},
             ),
             ListTile(

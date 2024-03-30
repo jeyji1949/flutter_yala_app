@@ -33,7 +33,7 @@ class _FindRidesPageState extends State<FindRidesPage> {
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
 
-  static  CameraPosition _kGooglePlex = CameraPosition(
+  static CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(37.42796133580664, -122.085749655962),
     zoom: 14.4746,
   );
@@ -189,7 +189,8 @@ class _FindRidesPageState extends State<FindRidesPage> {
                         IconButton(
                           icon: const Icon(Icons.search),
                           onPressed: () {
-                            searchForRide(originController.text,destinationController.text);
+                            searchForRide(originController.text,
+                                destinationController.text);
                           },
                         ),
                       ],
@@ -322,8 +323,8 @@ class _FindRidesPageState extends State<FindRidesPage> {
 
   void getAddressFromCoordinates(double latitude, double longitude) async {
     try {
-      List<geo_coding_location.Placemark> placemarks =
-          await geo_coding_location.placemarkFromCoordinates(latitude, longitude);
+      List<geo_coding_location.Placemark> placemarks = await geo_coding_location
+          .placemarkFromCoordinates(latitude, longitude);
       if (placemarks.isNotEmpty) {
         geo_coding_location.Placemark placemark = placemarks.first;
         print(
@@ -341,7 +342,6 @@ class _FindRidesPageState extends State<FindRidesPage> {
       // Convert origin and destination to coordinates
       LatLng? originLatLng = await _convertAddressToLatLng(origin);
       LatLng? destinationLatLng = await _convertAddressToLatLng(destination);
-
 
       // Display markers for origin and destination on the map
       Marker originMarker = Marker(
@@ -362,7 +362,7 @@ class _FindRidesPageState extends State<FindRidesPage> {
         markerSet.add(destinationMarker);
       });
       googleMapController.animateCamera(CameraUpdate.newLatLng(originLatLng));
-          // Calculate route using Directions API
+      // Calculate route using Directions API
       Directions directions = await AssitantMethods.getDirections(
         originLatLng,
         destinationLatLng,
@@ -373,10 +373,7 @@ class _FindRidesPageState extends State<FindRidesPage> {
         polylineSet.add(
           Polyline(
             polylineId: const PolylineId('Route'),
-            points: [
-              originLatLng,
-              destinationLatLng
-            ],
+            points: [originLatLng, destinationLatLng],
             color: Colors.blue,
             width: 5,
           ),
@@ -387,26 +384,24 @@ class _FindRidesPageState extends State<FindRidesPage> {
       print('Distance: ${directions.distance}');
       print('Duration: ${directions.duration}');
 
-       Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => SearchedRidesPage(
-        origin: origin,
-        destination: destination,
-      ),
-    ),
-  );
-  
-        } catch (e) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SearchedRidesPage(
+            origin: origin,
+            destination: destination,
+          ),
+        ),
+      );
+    } catch (e) {
       print('Error searching for ride: $e');
     }
   }
 
-
-
   Future<LatLng?> _convertAddressToLatLng(String address) async {
     try {
-      List<geo_coding_location.Location> locations = await geo_coding_location.locationFromAddress(address);
+      List<geo_coding_location.Location> locations =
+          await geo_coding_location.locationFromAddress(address);
       if (locations.isNotEmpty) {
         return LatLng(locations[0].latitude, locations[0].longitude);
       }

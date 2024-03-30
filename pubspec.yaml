@@ -74,6 +74,7 @@ dependencies:
   google_maps_webservice: ^0.0.19
   date_picker_timeline: ^1.2.5 
   http: ^0.13.6
+  url_launcher: ^6.0.12
 
   
 
@@ -113,6 +114,9 @@ flutter:
    - Assets/images/family-car.png
    - Assets/images/otp.png
    - Assets/images/20944127.jpg
+   - Assets/images/profilimage.jpg
+   - Assets/images/profil.jpg
+   - Assets/images/profil1.jpg
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
