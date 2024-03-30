@@ -5,7 +5,8 @@ import 'package:yalah/infoHadler/app_info.dart';
 import 'package:yalah/map/Map_key.dart';
 import 'package:yalah/Assistants/request_assitant.dart';
 import 'package:yalah/models/directions.dart';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 class AssitantMethods {
   static Future<String> searchAddressForGeographicCoOrdinates(
       Position position, context) async {
@@ -36,4 +37,6 @@ class AssitantMethods {
     // Placeholder implementation
     return Directions(); // Return a Directions object with the required data
   }
+
+
 }

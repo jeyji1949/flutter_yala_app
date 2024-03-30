@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:geocoder2/geocoder2.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:geocoding/geocoding.dart' as geo_coding_location;
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/places.dart' as flutter_google_places;
@@ -32,7 +32,7 @@ class _FindRidesPageState extends State<FindRidesPage> {
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
 
-  static const CameraPosition _kGooglePlex = CameraPosition(
+  static  CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(37.42796133580664, -122.085749655962),
     zoom: 14.4746,
   );
@@ -54,7 +54,6 @@ class _FindRidesPageState extends State<FindRidesPage> {
   BitmapDescriptor? activeNearbyIcon;
 
   late GooglePlace googlePlace;
-
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
@@ -154,7 +153,7 @@ class _FindRidesPageState extends State<FindRidesPage> {
                           child: Container(
                             child: TextField(
                               controller: originController,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 border: InputBorder.none,
                                 hintText: "From",
                               ),
@@ -164,7 +163,7 @@ class _FindRidesPageState extends State<FindRidesPage> {
                             ),
                           ),
                         ),
-                        SizedBox(width: 10),
+                        const SizedBox(width: 10),
                         Icon(
                           Icons.arrow_forward,
                           color: themeNotifier.isDark
@@ -187,8 +186,10 @@ class _FindRidesPageState extends State<FindRidesPage> {
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.search),
-                          onPressed: () {},
+                          icon: const Icon(Icons.search),
+                          onPressed: () {
+                            searchForRide(originController.text,destinationController.text);
+                          },
                         ),
                       ],
                     ),
@@ -320,10 +321,10 @@ class _FindRidesPageState extends State<FindRidesPage> {
 
   void getAddressFromCoordinates(double latitude, double longitude) async {
     try {
-      List<Placemark> placemarks =
-          await placemarkFromCoordinates(latitude, longitude);
+      List<geo_coding_location.Placemark> placemarks =
+          await geo_coding_location.placemarkFromCoordinates(latitude, longitude);
       if (placemarks.isNotEmpty) {
-        Placemark placemark = placemarks.first;
+        geo_coding_location.Placemark placemark = placemarks.first;
         print(
             'Address: ${placemark.street}, ${placemark.locality}, ${placemark.country}');
       } else {
@@ -334,33 +335,23 @@ class _FindRidesPageState extends State<FindRidesPage> {
     }
   }
 
-  /*void searchForRide(String origin, String destination) async {
+  void searchForRide(String origin, String destination) async {
     try {
       // Convert origin and destination to coordinates
-      List<Location> originResults = await locationFromAddress(origin);
-      List<Location> destinationResults =
-          await locationFromAddress(destination);
+      LatLng? originLatLng = await _convertAddressToLatLng(origin);
+      LatLng? destinationLatLng = await _convertAddressToLatLng(destination);
 
-      // Get LatLng objects from coordinates
-      LatLng originLatLng = LatLng(
-        originResults.first.latitude,
-        originResults.first.longitude,
-      );
-      LatLng destinationLatLng = LatLng(
-        destinationResults.first.latitude,
-        destinationResults.first.longitude,
-      );
 
       // Display markers for origin and destination on the map
       Marker originMarker = Marker(
         markerId: MarkerId('Origin'),
-        position: originLatLng,
+        position: originLatLng!!,
         infoWindow: InfoWindow(title: 'Origin'),
       );
 
       Marker destinationMarker = Marker(
         markerId: MarkerId('Destination'),
-        position: destinationLatLng,
+        position: destinationLatLng!!,
         infoWindow: InfoWindow(title: 'Destination'),
       );
 
@@ -369,20 +360,22 @@ class _FindRidesPageState extends State<FindRidesPage> {
         markerSet.add(originMarker);
         markerSet.add(destinationMarker);
       });
-
-      // Calculate route using Directions API
+      googleMapController.animateCamera(CameraUpdate.newLatLng(originLatLng));
+          // Calculate route using Directions API
       Directions directions = await AssitantMethods.getDirections(
         originLatLng,
         destinationLatLng,
       );
-
       // Display polyline for the route on the map
       setState(() {
         polylineSet.clear(); // Clear previous polylines
         polylineSet.add(
           Polyline(
-            polylineId: PolylineId('Route'),
-            points: directions.polylineCoordinates,
+            polylineId: const PolylineId('Route'),
+            points: [
+              originLatLng,
+              destinationLatLng
+            ],
             color: Colors.blue,
             width: 5,
           ),
@@ -392,11 +385,23 @@ class _FindRidesPageState extends State<FindRidesPage> {
       // Display trip information
       print('Distance: ${directions.distance}');
       print('Duration: ${directions.duration}');
-    } catch (e) {
+        } catch (e) {
       print('Error searching for ride: $e');
     }
   }
-*/
+
+  Future<LatLng?> _convertAddressToLatLng(String address) async {
+    try {
+      List<geo_coding_location.Location> locations = await geo_coding_location.locationFromAddress(address);
+      if (locations.isNotEmpty) {
+        return LatLng(locations[0].latitude, locations[0].longitude);
+      }
+    } catch (e) {
+      print("Error: $e");
+    }
+    return null;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -404,7 +409,7 @@ class _FindRidesPageState extends State<FindRidesPage> {
   }
 
   void performAutoComplete() async {
-    const kGoogleApiKey = "AIzaSyCrojA-B0fYuDVeW1vButIZxo1T9V0Ab7g";
+    String kGoogleApiKey = mapKey;
 
     // ignore: unused_local_variable
     Prediction? p = await PlacesAutocomplete.show(
@@ -423,5 +428,14 @@ class _FindRidesPageState extends State<FindRidesPage> {
           flutter_google_places.Component(
               flutter_google_places.Component.country, "MAR")
         ]);
+    if (p != null) {
+      setState(() {
+        if (originController.text.isEmpty) {
+          originController.text = p.description!;
+        } else {
+          destinationController.text = p.description!;
+        }
+      });
+    }
   }
 }
