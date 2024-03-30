@@ -31,11 +31,7 @@ class AssitantMethods {
 
   static Future<Directions> getDirections(
       LatLng origin, LatLng destination) async {
-    // Implement logic to fetch directions from an API
-    // For example, you can use Google Directions API or any other routing service
-
-    // Placeholder implementation
-    return Directions(); // Return a Directions object with the required data
+    return Directions();
   }
 
 

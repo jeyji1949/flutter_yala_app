@@ -41,6 +41,19 @@ class _SignUpPageState extends State<SignUpPage> {
     filter: {"#": RegExp(r'[0-9]')},
   );
 
+  void _showErrorDialogEmail(String errorMessage, {bool isEmailInUseError = false}) {
+  String errorDesc = errorMessage;
+  if (isEmailInUseError) {
+    errorDesc = 'The email address is already in use.';
+  }
+  AwesomeDialog(
+    context: context,
+    dialogType: DialogType.warning,
+    animType: AnimType.bottomSlide,
+    desc: errorDesc,
+    btnOkOnPress: () {},
+  ).show();
+}
   void _showErrorDialog(String errorMessage) {
     AwesomeDialog(
       context: context,
@@ -113,9 +126,7 @@ class _SignUpPageState extends State<SignUpPage> {
           });
         }
       }).catchError((error) {
-        // Erreur lors de l'enregistrement
-        print('Registration error: $error');
-        _showErrorDialog('Already registred login with that email');
+     _showErrorDialogEmail('Error creating user: ${error.message}', isEmailInUseError: error.code == 'email-already-in-use');
       });
     }
   }

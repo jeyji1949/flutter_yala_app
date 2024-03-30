@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:yalah/Pages/Wrapper.dart';
@@ -17,15 +19,29 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  File? _imageFile;
+
+  void setImageFile(File? imageFile) {
+    setState(() {
+      _imageFile = imageFile;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MultiProvider( 
+    return MultiProvider(
       providers: [
         ChangeNotifierProvider<ThemeModel>(create: (_) => ThemeModel()),
         ChangeNotifierProvider<AppInfo>(create: (_) => AppInfo()),
+        Provider<File?>.value(value: _imageFile),
       ],
       child: Consumer<ThemeModel>(
         builder: (context, ThemeModel themeNotifier, child) {

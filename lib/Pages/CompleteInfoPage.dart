@@ -71,8 +71,10 @@ class _UserProfilState extends State<UserProfil> {
       // Upload image to Firebase storage
       if (_imageFile != null) {
         final storage = FirebaseStorage.instance;
+        final String uid =
+            FirebaseAuth.instance.currentUser!.uid; // Get current user's UID
         final Reference storageRef =
-            storage.ref().child('user_profile_images/${DateTime.now()}');
+            storage.ref().child('user_profile_images/$uid/${DateTime.now()}');
         await storageRef.putFile(_imageFile!);
         String imageUrl = await storageRef.getDownloadURL();
         // You can save the imageUrl to Firestore or use it as needed
@@ -81,59 +83,58 @@ class _UserProfilState extends State<UserProfil> {
     }
   }
 
- Future<void> _uploadUserInfo() async {
-  String uid = FirebaseAuth.instance.currentUser!.uid;
+  Future<void> _uploadUserInfo() async {
+    String uid = FirebaseAuth.instance.currentUser!.uid;
 
-  // Get values from text controllers
-  String city = adressController.text;
-  String cin = IDController.text;
-  bool isPassenger = isPassengerSelected;
-  bool isDriver = isDriverSelected;
-  String vehicleType = vehiculeController.text;
+    // Get values from text controllers
+    String city = adressController.text;
+    String cin = IDController.text;
+    bool isPassenger = isPassengerSelected;
+    bool isDriver = isDriverSelected;
+    String vehicleType = vehiculeController.text;
 
-  // Validate CIN format and check checkbox selection
-  if (validateCIN(cin) && (isPassengerSelected || isDriverSelected)) {
-    // CIN is valid and at least one checkbox is selected, proceed with further actions
+    // Validate CIN format and check checkbox selection
+    if (validateCIN(cin) && (isPassengerSelected || isDriverSelected)) {
+      // CIN is valid and at least one checkbox is selected, proceed with further actions
 
-    try {
-      // Update the user information in Firestore
-      await FirebaseFirestore.instance.collection('users').doc(uid).update({
-        'city': city,
-        'cin': cin,
-        'isPassenger': isPassenger,
-        'isDriver': isDriver,
-        'vehicleType': vehicleType,
-      });
-      
-      // Navigate to the main screen after successful upload
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => FindRidesPage()),
-      );
-    } catch (e) {
-      // Handle any errors that occur during Firestore update
-      print('Error uploading user info: $e');
-      _showErrorDialog('An error occurred while uploading user information.');
-    }
-  } else {
-    // Display an error message indicating invalid input
-    if (!validateCIN(cin)) {
-      _showErrorDialog('Invalid CIN format');
-    }
-    if (!isPassengerSelected && !isDriverSelected) {
-      _showErrorDialog('Please select one option (Passenger or Driver).');
+      try {
+        // Update the user information in Firestore
+        await FirebaseFirestore.instance.collection('users').doc(uid).update({
+          'city': city,
+          'cin': cin,
+          'isPassenger': isPassenger,
+          'isDriver': isDriver,
+          'vehicleType': vehicleType,
+        });
+
+        // Navigate to the main screen after successful upload
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => FindRidesPage()),
+        );
+      } catch (e) {
+        // Handle any errors that occur during Firestore update
+        print('Error uploading user info: $e');
+        _showErrorDialog('An error occurred while uploading user information.');
+      }
+    } else {
+      // Display an error message indicating invalid input
+      if (!validateCIN(cin)) {
+        _showErrorDialog('Invalid CIN format');
+      }
+      if (!isPassengerSelected && !isDriverSelected) {
+        _showErrorDialog('Please select one option (Passenger or Driver).');
+      }
     }
   }
-}
 
-bool validateCIN(String cin) {
-  // Regular expression for CIN validation
-  RegExp regex = RegExp(r'^[A-Z]{1,2}\d{6}$');
+  bool validateCIN(String cin) {
+    // Regular expression for CIN validation
+    RegExp regex = RegExp(r'^[A-Z]{1,2}\d{6}$');
 
-  // Check if the CIN matches the regular expression
-  return regex.hasMatch(cin);
-}
-
+    // Check if the CIN matches the regular expression
+    return regex.hasMatch(cin);
+  }
 
   @override
   Widget build(BuildContext context) {
