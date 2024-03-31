@@ -1,4 +1,5 @@
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:yalah/Pages/FindRides.dart';
 import 'package:yalah/Pages/Home.dart';
 import 'package:yalah/Pages/LogIn.dart';
@@ -6,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:yalah/Pages/Myrides.dart';
 import 'package:yalah/Pages/UserInfo.dart';
 import 'package:yalah/Pages/offerRides.dart';
 import 'package:yalah/theme/theme_model.dart';
@@ -168,7 +170,7 @@ class MyDrawer extends StatelessWidget {
               title: Text('Home'),
               onTap: () {
                 Navigator.pushReplacement(
-                  context,  
+                  context,
                   MaterialPageRoute(builder: (context) => OfferedRidesPage()),
                 );
               },
@@ -195,6 +197,16 @@ class MyDrawer extends StatelessWidget {
               },
             ),
             ListTile(
+              leading: Icon(Icons.trip_origin),
+              title: Text('My Rides '),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => MyRides()),
+                );
+              },
+            ),
+            ListTile(
               leading: Icon(Icons.person),
               title: Text('Profil'),
               onTap: () {
@@ -207,7 +219,9 @@ class MyDrawer extends StatelessWidget {
             ListTile(
               leading: Icon(Icons.sos),
               title: Text('SOS'),
-              onTap: () {},
+              onTap: () {
+                launch('tel:177');
+              },
             ),
             ListTile(
               leading: Icon(Icons.logout),
