@@ -4,6 +4,7 @@ import 'package:country_picker/country_picker.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_connect/http/src/certificates/certificates.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:provider/provider.dart';
 import 'package:yalah/Pages/LogIn.dart';
@@ -41,19 +42,21 @@ class _SignUpPageState extends State<SignUpPage> {
     filter: {"#": RegExp(r'[0-9]')},
   );
 
-  void _showErrorDialogEmail(String errorMessage, {bool isEmailInUseError = false}) {
-  String errorDesc = errorMessage;
-  if (isEmailInUseError) {
-    errorDesc = 'The email address is already in use.';
+  void _showErrorDialogEmail(String errorMessage,
+      {bool isEmailInUseError = false}) {
+    String errorDesc = errorMessage;
+    if (isEmailInUseError) {
+      errorDesc = 'The email address is already in use.';
+    }
+    AwesomeDialog(
+      context: context,
+      dialogType: DialogType.warning,
+      animType: AnimType.bottomSlide,
+      desc: errorDesc,
+      btnOkOnPress: () {},
+    ).show();
   }
-  AwesomeDialog(
-    context: context,
-    dialogType: DialogType.warning,
-    animType: AnimType.bottomSlide,
-    desc: errorDesc,
-    btnOkOnPress: () {},
-  ).show();
-}
+
   void _showErrorDialog(String errorMessage) {
     AwesomeDialog(
       context: context,
@@ -108,7 +111,7 @@ class _SignUpPageState extends State<SignUpPage> {
               'password': password,
               'phone Number': phoneNumber,
               'createAt': DateTime.now(),
-              'emailVerified': false, // Mark email as not verified initially
+              'emailVerified': true,
             }).then((_) {
               // Show success message or navigate to next screen
               _showErrorDialog(
@@ -126,7 +129,8 @@ class _SignUpPageState extends State<SignUpPage> {
           });
         }
       }).catchError((error) {
-     _showErrorDialogEmail('Error creating user: ${error.message}', isEmailInUseError: error.code == 'email-already-in-use');
+        _showErrorDialogEmail('Error creating user: ${error.message}',
+            isEmailInUseError: error.code == 'email-already-in-use');
       });
     }
   }

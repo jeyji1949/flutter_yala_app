@@ -98,13 +98,26 @@ class _UserProfilState extends State<UserProfil> {
       // CIN is valid and at least one checkbox is selected, proceed with further actions
 
       try {
-        // Update the user information in Firestore
+        // Get download URL of the uploaded image from Firebase Storage
+        String photoURL = '';
+        if (_imageFile != null) {
+          final storage = FirebaseStorage.instance;
+          final String uid =
+              FirebaseAuth.instance.currentUser!.uid; // Get current user's UID
+          final Reference storageRef =
+              storage.ref().child('user_profile_images/$uid/${DateTime.now()}');
+          await storageRef.putFile(_imageFile!);
+          photoURL = await storageRef.getDownloadURL();
+        }
+
+        // Update the user information in Firestore including photo URL
         await FirebaseFirestore.instance.collection('users').doc(uid).update({
           'city': city,
           'cin': cin,
           'isPassenger': isPassenger,
           'isDriver': isDriver,
           'vehicleType': vehicleType,
+          'photoURL': photoURL, // Include photo URL in the document update
         });
 
         // Navigate to the main screen after successful upload
@@ -117,14 +130,12 @@ class _UserProfilState extends State<UserProfil> {
         print('Error uploading user info: $e');
         _showErrorDialog('An error occurred while uploading user information.');
       }
-    } else {
-      // Display an error message indicating invalid input
-      if (!validateCIN(cin)) {
-        _showErrorDialog('Invalid CIN format');
-      }
-      if (!isPassengerSelected && !isDriverSelected) {
-        _showErrorDialog('Please select one option (Passenger or Driver).');
-      }
+    } else if (!validateCIN(cin)) {
+      _showErrorDialog('Invalid CIN format');
+    } else if (!isPassengerSelected && !isDriverSelected) {
+      _showErrorDialog('Please select one option (Passenger or Driver).');
+    } else if (city.isEmpty || cin.isEmpty) {
+      _showErrorDialog('All fields must be fill in');
     }
   }
 

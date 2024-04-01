@@ -33,42 +33,55 @@ class MyDrawer extends StatelessWidget {
   }
 
   Widget _buildProfileImage(String uid) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _getUserProfileData(uid),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        } else if (snapshot.hasError) {
-          return Icon(
+  return FutureBuilder<DocumentSnapshot>(
+    future: FirebaseFirestore.instance.collection('users').doc(uid).get(),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return CircularProgressIndicator();
+      } else if (snapshot.hasError) {
+        return CircleAvatar(
+          radius: 20,
+          child: Icon(
             Icons.person,
             color: Color(0xFF306B74),
             size: 40,
+          ),
+        );
+      } else if (snapshot.hasData) {
+        var userData = snapshot.data!.data() as Map<String, dynamic>?;
+
+        // Check if user data exists and contains profile image URL
+        if (userData != null && userData.containsKey('photoURL')) {
+          String imageUrl = userData['photoURL'];
+          return CircleAvatar(
+            radius: 20,
+            backgroundImage: NetworkImage(imageUrl),
           );
-        } else if (snapshot.hasData) {
-          Map<String, dynamic>? userData = snapshot.data;
-          if (userData != null && userData.containsKey('profileImageUrl')) {
-            String imageUrl = userData['profileImageUrl'];
-            return CircleAvatar(
-              radius: 20,
-              backgroundImage: NetworkImage(imageUrl),
-            );
-          } else {
-            return Icon(
+        } else {
+          return CircleAvatar(
+            radius: 20,
+            child: Icon(
               Icons.person,
               color: Color(0xFF306B74),
               size: 40,
-            );
-          }
-        } else {
-          return Icon(
+            ),
+          );
+        }
+      } else {
+        return CircleAvatar(
+          radius: 20,
+          child: Icon(
             Icons.person,
             color: Color(0xFF306B74),
             size: 40,
-          );
-        }
-      },
-    );
-  }
+          ),
+        );
+      }
+    },
+  );
+}
+
+
 
   Future<Map<String, dynamic>> _getUserProfileData(String uid) async {
     try {
@@ -85,87 +98,86 @@ class MyDrawer extends StatelessWidget {
       return {}; // Return empty map on error
     }
   }
+  
 
   @override
   Widget build(BuildContext context) {
     final User? currentUser = FirebaseAuth.instance.currentUser;
+    
     return Consumer<ThemeModel>(
         builder: (context, ThemeModel themeNotifier, child) {
       return Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-              ),
-              child: currentUser != null
-                  ? Row(
+  child: ListView(
+    padding: EdgeInsets.zero,
+    children: <Widget>[
+      DrawerHeader(
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+        ),
+        child: currentUser != null
+            ? FutureBuilder<Map<String, dynamic>>(
+                future: _getUserProfileData(currentUser.uid),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text("Error: ${snapshot.error}");
+                  } else if (snapshot.hasData) {
+                    var userData = snapshot.data!;
+                    var username = userData['nom'];
+                    var isPassenger = userData['isPassenger'];
+                    var isDriver = userData['isDriver'];
+                    var uid = currentUser.uid;
+                    print("Username: $username");
+                    return Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        CircleAvatar(
-                          radius: 20, // Adjust the size as needed
-                          backgroundImage:
-                              AssetImage("Assets/images/profilimage.jpg"),
-                        ),
+                        _buildProfileImage(uid),
                         SizedBox(width: 16),
-                        FutureBuilder<Map<String, dynamic>>(
-                          future: _getUserProfileData(currentUser.uid),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return CircularProgressIndicator();
-                            } else if (snapshot.hasError) {
-                              return Text("Error: ${snapshot.error}");
-                            } else if (snapshot.hasData) {
-                              var userData = snapshot.data!;
-                              var username = userData['nom'];
-                              var isPassenger = userData['isPassenger'];
-                              var isDriver = userData['isDriver'];
-                              print("Username: $username");
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    username ?? "",
-                                    style: TextStyle(
-                                      color: themeNotifier.isDark
-                                          ? Colors.white
-                                          : Colors.black,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  if (isPassenger ?? false)
-                                    Text(
-                                      "Passenger",
-                                      style: TextStyle(
-                                        color: themeNotifier.isDark
-                                            ? Colors.white
-                                            : Colors.black,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  if (isDriver ?? false)
-                                    Text(
-                                      "Driver",
-                                      style: TextStyle(
-                                        color: themeNotifier.isDark
-                                            ? Colors.white
-                                            : Colors.black,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                ],
-                              );
-                            } else {
-                              return Container();
-                            }
-                          },
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              username ?? "",
+                              style: TextStyle(
+                                color: themeNotifier.isDark
+                                    ? Colors.white
+                                    : Colors.black,
+                                fontSize: 18,
+                              ),
+                            ),
+                            if (isPassenger ?? false)
+                              Text(
+                                "Passenger",
+                                style: TextStyle(
+                                  color: themeNotifier.isDark
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            if (isDriver ?? false)
+                              Text(
+                                "Driver",
+                                style: TextStyle(
+                                  color: themeNotifier.isDark
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontSize: 14,
+                                ),
+                              ),
+                          ],
                         ),
                       ],
-                    )
-                  : Container(),
-            ),
+                    );
+                  } else {
+                    return Container();
+                  }
+                },
+              )
+            : Container(),
+      ),
+      
             ListTile(
               leading: Icon(Icons.home),
               title: Text('Home'),
@@ -176,17 +188,29 @@ class MyDrawer extends StatelessWidget {
                 );
               },
             ),
-            ListTile(
-              leading: Icon(Icons.location_on),
-              title: Text('Find a ride'),
-              onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const FindRidesPage()),
-                );
-              },
-            ),
+             FutureBuilder<Map<String, dynamic>>(
+                future: _getUserProfileData(currentUser!.uid),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  } else if (snapshot.hasData) {
+                    var isDriver = snapshot.data!['isDriver'] ?? false;
+                    if (!isDriver) {
+                      return ListTile(
+                        leading: Icon(Icons.location_on),
+                        title: Text('Find a ride'),
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const FindRidesPage()),
+                          );
+                        },
+                      );
+                    }
+                  }
+                  return SizedBox(); // If user type cannot be determined, return an empty SizedBox
+                },
+              ),
             ListTile(
               leading: Icon(Icons.location_pin),
               title: Text('Offer a ride'),
