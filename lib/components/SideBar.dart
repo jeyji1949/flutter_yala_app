@@ -34,7 +34,7 @@ class MyDrawer extends StatelessWidget {
 
   Widget _buildProfileImage(String uid) {
     return FutureBuilder<Map<String, dynamic>>(
-      future: _getUserData(uid),
+      future: _getUserProfileData(uid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator();
@@ -70,17 +70,18 @@ class MyDrawer extends StatelessWidget {
     );
   }
 
-  Future<Map<String, dynamic>> _getUserData(String uid) async {
+  Future<Map<String, dynamic>> _getUserProfileData(String uid) async {
     try {
       var snapshot =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
 
       if (snapshot.exists) {
-        return snapshot.data() as Map<String, dynamic>;
+        var userData = snapshot.data();
+        return userData ?? {}; // Return user data or empty map if null
       }
       return {}; // Return empty map if no user data found
     } catch (e) {
-      print('Error fetching user data: $e');
+      print('Error fetching user profile data: $e');
       return {}; // Return empty map on error
     }
   }
@@ -109,7 +110,7 @@ class MyDrawer extends StatelessWidget {
                         ),
                         SizedBox(width: 16),
                         FutureBuilder<Map<String, dynamic>>(
-                          future: _getUserData(currentUser.uid),
+                          future: _getUserProfileData(currentUser.uid),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {

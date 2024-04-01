@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:yalah/components/SideBar.dart';
 import 'package:yalah/theme/theme_model.dart';
@@ -18,6 +22,8 @@ class MapScreenState extends State<ProfilePage>
   TextEditingController _emailController = TextEditingController();
   TextEditingController _mobileController = TextEditingController();
   TextEditingController _cityController = TextEditingController();
+  File? _imageFile;
+  final picker = ImagePicker();
 
   @override
   void initState() {
@@ -49,6 +55,89 @@ class MapScreenState extends State<ProfilePage>
       }
     } catch (e) {
       print('Error fetching user data: $e');
+    }
+  }
+
+  Future<void> _getImage() async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return SimpleDialog(
+          title: Text("Choose an option"),
+          children: <Widget>[
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.gallery);
+              },
+              child: Text("Pick from gallery"),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.camera);
+              },
+              child: Text("Capture from camera"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: source);
+
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+
+      // Upload image to Firebase storage
+      if (_imageFile != null) {
+        final storage = FirebaseStorage.instance;
+        final String uid =
+            FirebaseAuth.instance.currentUser!.uid; // Get current user's UID
+        final Reference storageRef =
+            storage.ref().child('user_profile_images/$uid/${DateTime.now()}');
+
+        // Upload the image file
+        await storageRef.putFile(_imageFile!);
+
+        // Get the download URL of the uploaded image
+        String imageUrl = await storageRef.getDownloadURL();
+
+        // Update the user's profile image URL in Firestore
+        await FirebaseFirestore.instance.collection('users').doc(uid).update({
+          'profileImageUrl': imageUrl,
+        });
+
+        // Print a message indicating the image was uploaded and URL updated
+        print('Image uploaded to Firebase storage: $imageUrl');
+        print('Profile image URL updated in Firestore.');
+      }
+    }
+  }
+
+  Future<void> updateUserData(String field, String value) async {
+    try {
+      // Get the current user
+      User? user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        // Update the specified field in Firestore
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .update({
+          field: value,
+        });
+      } else {
+        print('User not signed in.');
+      }
+    } catch (e) {
+      print('Error updating user data: $e');
     }
   }
 
@@ -106,11 +195,16 @@ class MapScreenState extends State<ProfilePage>
                                     height: 140.0,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      image: DecorationImage(
-                                        image: ExactAssetImage(
-                                            'Assets/images/profilimage.jpg'),
-                                        fit: BoxFit.cover,
-                                      ),
+                                      image: _imageFile != null
+                                          ? DecorationImage(
+                                              image: FileImage(_imageFile!),
+                                              fit: BoxFit.cover,
+                                            )
+                                          : DecorationImage(
+                                              image: ExactAssetImage(
+                                                  'Assets/images/profilimage.jpg'),
+                                              fit: BoxFit.cover,
+                                            ),
                                     ),
                                   ),
                                 ],
@@ -121,14 +215,18 @@ class MapScreenState extends State<ProfilePage>
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: <Widget>[
-                                    new CircleAvatar(
-                                      backgroundColor: Color(0xff087E8B),
-                                      radius: 25.0,
-                                      child: const Icon(
-                                        Icons.camera_alt,
-                                        color: Colors.white,
-                                      ),
-                                    )
+                                    GestureDetector(
+                                        onTap: () {
+                                          _getImage();
+                                        },
+                                        child: CircleAvatar(
+                                          backgroundColor: Color(0xff087E8B),
+                                          radius: 25.0,
+                                          child: const Icon(
+                                            Icons.camera_alt,
+                                            color: Colors.white,
+                                          ),
+                                        ))
                                   ],
                                 ),
                               ),
@@ -210,6 +308,10 @@ class MapScreenState extends State<ProfilePage>
                                     ),
                                     enabled: !_status,
                                     autofocus: !_status,
+                                    onChanged: (value) {
+                                      // Update the 'nom' field in Firestore when the text changes
+                                      updateUserData('nom', value);
+                                    },
                                   ),
                                 ),
                               ],
@@ -244,11 +346,14 @@ class MapScreenState extends State<ProfilePage>
                               children: <Widget>[
                                 new Flexible(
                                   child: new TextField(
-                                    controller: _emailController,
-                                    decoration: const InputDecoration(
-                                        hintText: "Enter Email ID"),
-                                    enabled: !_status,
-                                  ),
+                                      controller: _emailController,
+                                      decoration: const InputDecoration(
+                                          hintText: "Enter Email ID"),
+                                      enabled: !_status,
+                                      onChanged: (value) {
+                                        // Update the 'nom' field in Firestore when the text changes
+                                        updateUserData('nom', value);
+                                      }),
                                 ),
                               ],
                             ),
@@ -282,11 +387,14 @@ class MapScreenState extends State<ProfilePage>
                               children: <Widget>[
                                 new Flexible(
                                   child: new TextField(
-                                    controller: _mobileController,
-                                    decoration: const InputDecoration(
-                                        hintText: "Enter Mobile Number"),
-                                    enabled: !_status,
-                                  ),
+                                      controller: _mobileController,
+                                      decoration: const InputDecoration(
+                                          hintText: "Enter Mobile Number"),
+                                      enabled: !_status,
+                                      onChanged: (value) {
+                                        // Update the 'nom' field in Firestore when the text changes
+                                        updateUserData('nom', value);
+                                      }),
                                 ),
                               ],
                             ),
@@ -321,11 +429,14 @@ class MapScreenState extends State<ProfilePage>
                               children: <Widget>[
                                 Flexible(
                                   child: new TextField(
-                                    controller: _cityController,
-                                    decoration: const InputDecoration(
-                                        hintText: "Enter City"),
-                                    enabled: !_status,
-                                  ),
+                                      controller: _cityController,
+                                      decoration: const InputDecoration(
+                                          hintText: "Enter City"),
+                                      enabled: !_status,
+                                      onChanged: (value) {
+                                        // Update the 'nom' field in Firestore when the text changes
+                                        updateUserData('nom', value);
+                                      }),
                                   flex: 2,
                                 ),
                               ],
@@ -359,51 +470,72 @@ class MapScreenState extends State<ProfilePage>
   Widget _getActionButtons() {
     return Padding(
       padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 45.0),
-      child: new Row(
+      child: Row(
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
           Expanded(
+            flex: 2,
             child: Padding(
               padding: EdgeInsets.only(right: 10.0),
               child: Container(
-                child: new MaterialButton(
-                  child: const Text("Save"),
-                  textColor: Colors.white,
-                  color: Colors.green,
-                  onPressed: () {
+                child: MaterialButton(
+                  onPressed: () async {
+                    // Upload new profile photo if _imageFile is not null
+                    if (_imageFile != null) {
+                      final storage = FirebaseStorage.instance;
+                      final String uid = FirebaseAuth.instance.currentUser!.uid;
+                      final Reference storageRef = storage
+                          .ref()
+                          .child('user_profile_images/$uid/${DateTime.now()}');
+                      await storageRef.putFile(_imageFile!);
+                      String imageUrl = await storageRef.getDownloadURL();
+
+                      // Update profile photo URL in Firestore
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(uid)
+                          .update({
+                        'profileImageUrl': imageUrl,
+                      });
+                    }
+
                     setState(() {
                       _status = true;
-                      FocusScope.of(context).requestFocus(new FocusNode());
+                      FocusScope.of(context).requestFocus(FocusNode());
                     });
                   },
-                  shape: new RoundedRectangleBorder(
-                      borderRadius: new BorderRadius.circular(20.0)),
+                  child: Text("Save"),
+                  textColor: Colors.white,
+                  color: Colors.green,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
                 ),
               ),
             ),
-            flex: 2,
           ),
           Expanded(
+            flex: 2,
             child: Padding(
               padding: EdgeInsets.only(left: 10.0),
               child: Container(
-                child: new MaterialButton(
-                  child: const Text("Cancel"),
-                  textColor: Colors.white,
-                  color: Color(0xffff5a5f),
+                child: MaterialButton(
                   onPressed: () {
                     setState(() {
                       _status = true;
-                      FocusScope.of(context).requestFocus(new FocusNode());
+                      FocusScope.of(context).requestFocus(FocusNode());
                     });
                   },
-                  shape: new RoundedRectangleBorder(
-                      borderRadius: new BorderRadius.circular(20.0)),
+                  child: Text("Cancel"),
+                  textColor: Colors.white,
+                  color: Color(0xffff5a5f),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
                 ),
               ),
             ),
-            flex: 2,
           ),
         ],
       ),
