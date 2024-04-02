@@ -49,6 +49,13 @@ class MapScreenState extends State<ProfilePage>
           _emailController.text = userData['email'] ?? '';
           _mobileController.text = userData['phone Number'] ?? '';
           _cityController.text = userData['city'] ?? '';
+
+          String? profileImageUrl = userData['photoURL'];
+          if (profileImageUrl != null && profileImageUrl.isNotEmpty) {
+            setState(() {
+              _imageFile = File(profileImageUrl);
+            });
+          }
         }
       } else {
         print('User not signed in.');

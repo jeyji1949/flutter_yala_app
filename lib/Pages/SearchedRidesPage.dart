@@ -32,7 +32,7 @@ class _SearchedRidesPageState extends State<SearchedRidesPage> {
             backgroundColor: const Color(0xff60E1E0),
             elevation: 0,
             title: Text(
-              themeNotifier.isDark ? "Availaibale Rides" : "Availaibale Rides",
+              themeNotifier.isDark ? "Available Rides" : "Available Rides",
               style: TextStyle(
                   color: themeNotifier.isDark
                       ? Colors.white
@@ -79,8 +79,10 @@ class _SearchedRidesPageState extends State<SearchedRidesPage> {
 
                 if (filteredDocs.isEmpty) {
                   return Center(
-                      child: Text(
-                          'No rides found for the selected origin and destination.'));
+                    child: Text(
+                      'No rides found for the selected origin and destination.',
+                    ),
+                  );
                 }
 
                 return ListView.builder(
@@ -91,207 +93,175 @@ class _SearchedRidesPageState extends State<SearchedRidesPage> {
                     if (index == filteredDocs.length) {
                       // This is where the second container will be displayed
                       return Container(
-                        margin: EdgeInsets.only(bottom: 20.0),
-                        padding: EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10.0),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 3,
-                              blurRadius: 5,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('From: \n Nador, Maroc'),
-                                Align(
-                                  alignment: Alignment.topRight,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text('Ahmed EL'),
-                                      CircleAvatar(
-                                        radius: 20, // Adjust the size as needed
-                                        backgroundImage: AssetImage(
-                                            "Assets/images/profil1.jpg"),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('to: \n Fès'),
-                              ],
-                            ),
-                            SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('Price per person : 200 MAD'),
-                                Icon(Icons.attach_money), // Price icon
-                              ],
-                            ),
-                            SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('Car: Clio C15'),
-                                Icon(Icons.car_crash_rounded), // Price icon
-                              ],
-                            ),
-                            SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('07/04/2024'),
-                                Icon(Icons.date_range), // Seats icon
-                              ],
-                            ),
-                            SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('Available seats: 2'),
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Icon(Icons.event_seat),
-                                Icon(Icons.event_seat),
-                              ],
-                            ),
-                            Text('★★★☆☆'), // Example stars
-                            SizedBox(height: 10),
-                            MaterialButton(
-                              child: const Text("Contact"),
-                              textColor: Colors.white,
-                              color: Color(0xffff5a5f),
-                              onPressed: () {
-                                launchWhatsApp();
-                              },
-                              shape: new RoundedRectangleBorder(
-                                  borderRadius:
-                                      new BorderRadius.circular(20.0)),
-                            ),
-                          ],
-                        ),
-                      );
+                          // Your second container code
+                          );
                     } else {
                       // This is where the first container will be displayed
                       final doc = filteredDocs[index];
-                      return Container(
-                        margin: EdgeInsets.only(bottom: 20.0),
-                        padding: EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10.0),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 3,
-                              blurRadius: 5,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('From: \n Nador, Maroc'),
-                                Align(
-                                  alignment: Alignment.topRight,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text('Nadia'),
-                                      CircleAvatar(
+                      String userID = doc['userID'];
+                      String dropOffLocation = doc['dropOffLocation'];
+                      String pickupLocation = doc['pickupLocation'];
+                      int pricePerPerson = doc['pricePerPerson'];
+                      String vehicleType = doc['vehicleType'];
+                      String departureDateTime = doc['departureDateTime'];
+                      int availableSeats = doc['numberOfSeats']; // Total number of seats
+
+                      // Now you have the userID, you can fetch the username and photo URL from the users collection
+                      return FutureBuilder<DocumentSnapshot>(
+                        future: FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(userID)
+                            .get(),
+                        builder: (context, userSnapshot) {
+                          if (userSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            // Return a loading indicator while fetching the user data
+                            return CircularProgressIndicator();
+                          } else if (userSnapshot.hasError) {
+                            // Handle any errors
+                            return Text(
+                                'Error fetching user data: ${userSnapshot.error}');
+                          } else {
+                            // User data fetched successfully
+                            String username = userSnapshot.data!.get('nom');
+                            String photoURL =
+                                userSnapshot.data!.get('photoURL');
+                            Widget avatar =
+                                photoURL != null && photoURL.isNotEmpty
+                                    ? CircleAvatar(
                                         radius: 20, // Adjust the size as needed
-                                        backgroundImage: AssetImage(
-                                            "Assets/images/profil.jpg"),
+                                        backgroundImage: NetworkImage(
+                                          photoURL, // Use the fetched photo URL here
+                                        ),
+                                      )
+                                    : CircleAvatar(
+                                        radius: 20,
+                                        child: Icon(Icons.person),
+                                      );
+
+                            // Create a list to hold the seat icons
+                            List<Widget> seatIcons = List.generate(
+                              availableSeats,
+                              (index) => Icon(Icons.event_seat),
+                            );
+
+                            // If there are fewer available seats than the total seats, add empty seat icons
+                            int totalSeats = 4; // Total number of seats
+                            if (availableSeats < totalSeats) {
+                              seatIcons.addAll(
+                                List.generate(
+                                  totalSeats - availableSeats,
+                                  (index) => Icon(Icons
+                                      .event_seat_outlined), // Use an empty seat icon
+                                ),
+                              );
+                            }
+
+                            // Now you have the username, photo URL, and seat icons, use them to display the ride details
+                            return Container(
+                              margin: EdgeInsets.only(bottom: 20.0),
+                              padding: EdgeInsets.all(16.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10.0),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 3,
+                                    blurRadius: 5,
+                                    offset: Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text('From: \n ${widget.origin}'),
+                                      Align(
+                                        alignment: Alignment.topRight,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                                username), // Display the fetched username here
+                                            avatar, // Display the fetched avatar here
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('to: \n Fès, Maroc'),
-                              ],
-                            ),
-                            SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('Price per person : 100 MAD'),
-                                Icon(Icons.attach_money), // Price icon
-                              ],
-                            ),
-                            SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('Car: Dacia logane 256'),
-                                Icon(Icons.car_crash_rounded), // Price icon
-                              ],
-                            ),
-                            SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('06/04/2024'),
-                                Icon(Icons.date_range), // Seats icon
-                              ],
-                            ),
-                            SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('Available seats: 4'),
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Icon(Icons.event_seat),
-                                Icon(Icons.event_seat),
-                                Icon(Icons.event_seat),
-                                Icon(Icons.event_seat), // Seats icon
-                              ],
-                            ),
-                            Text('★★★★☆'), // Example stars
-                            SizedBox(height: 10),
-                            MaterialButton(
-                              child: const Text("Contact"),
-                              textColor: Colors.white,
-                              color: Color(0xffff5a5f),
-                              onPressed: () {
-                                launchWhatsApp();
-                              },
-                              shape: new RoundedRectangleBorder(
-                                  borderRadius:
-                                      new BorderRadius.circular(20.0)),
-                            ),
-                          ],
-                        ),
+                                  SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text('to: \n ${widget.destination}'),
+                                    ],
+                                  ),
+                                  SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                          'Price per person : $pricePerPerson MAD'),
+                                      Icon(Icons.attach_money), // Price icon
+                                    ],
+                                  ),
+                                  SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text('Car: $vehicleType'),
+                                      Icon(Icons.car_crash_rounded), // Car icon
+                                    ],
+                                  ),
+                                  SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(departureDateTime),
+                                      Icon(Icons.date_range), // Date icon
+                                    ],
+                                  ),
+                                  SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text('Available seats: $availableSeats'),
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children:
+                                        seatIcons, // Display the seat icons here
+                                  ),
+                                  Text('★★★★☆'), // Example stars
+                                  SizedBox(height: 10),
+                                  MaterialButton(
+                                    child: const Text("Contact"),
+                                    textColor: Colors.white,
+                                    color: Color(0xffff5a5f),
+                                    onPressed: () {
+                                      launchWhatsApp();
+                                    },
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20.0),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                        },
                       );
                     }
                   },

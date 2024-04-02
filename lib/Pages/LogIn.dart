@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:yalah/Pages/AuthService.dart';
 import 'package:yalah/Pages/SignUp.dart';
 import 'package:yalah/Pages/FindRides.dart';
+import 'package:yalah/Pages/offerRides.dart';
 
 import '../theme/theme_model.dart';
 
@@ -228,17 +229,36 @@ class _LoginPageState extends State<LoginPage> {
 
   void signInUser() async {
     try {
-      // ignore: unused_local_variable
       UserCredential userCredential =
           await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text,
         password: passwordController.text,
       );
-      // ignore: use_build_context_synchronously
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) =>const FindRidesPage()),
-      );
+
+      // Retrieve user data from Firestore
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .get();
+      var userData = userSnapshot.data() as Map<String, dynamic>;
+
+      // Check if user is a driver or passenger based on some indication in user data
+      bool isDriver = userData['isDriver'] ?? false;
+
+      // Navigate user based on their role
+      if (isDriver) {
+        // User is a driver, navigate to OfferRidesPage
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => OfferRidesPage()),
+        );
+      } else {
+        // User is a passenger, navigate to FindRidesPage
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => FindRidesPage()),
+        );
+      }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         print('User not found');

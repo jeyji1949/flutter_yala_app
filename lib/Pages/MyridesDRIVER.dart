@@ -1,7 +1,8 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:yalah/Pages/MyRidesInfo.dart';
+import 'package:yalah/Pages/MyRidesInfoModify.dart';
+import 'package:yalah/components/SideBar.dart';
 import 'package:yalah/theme/theme_model.dart';
 
 class MyRides extends StatefulWidget {
@@ -15,6 +16,8 @@ class _MyRidesState extends State<MyRides> {
   TextEditingController toController =
       TextEditingController(text: 'Fès, Maroc');
 
+  bool isEditing = false;
+
   void _showErrorDialog(BuildContext context, String errorMessage) {
     AwesomeDialog(
       context: context,
@@ -25,8 +28,6 @@ class _MyRidesState extends State<MyRides> {
       btnOkOnPress: () {},
     ).show();
   }
-
-  bool isEditing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -44,12 +45,6 @@ class _MyRidesState extends State<MyRides> {
                   color: themeNotifier.isDark
                       ? Colors.white
                       : Colors.grey.shade900),
-            ),
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pop(context); // Navigate back when arrow is pressed
-              },
             ),
             actions: [
               IconButton(
@@ -69,6 +64,7 @@ class _MyRidesState extends State<MyRides> {
               )
             ],
           ),
+          drawer: MyDrawer(),
           body: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -223,6 +219,14 @@ class _MyRidesState extends State<MyRides> {
                       ),
                     ),
                   ],
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'This ride has been canceled', // Display message when ride is canceled
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),

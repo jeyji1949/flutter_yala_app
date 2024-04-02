@@ -10,6 +10,7 @@ class RideDetail extends StatelessWidget {
   final String departureDateTime;
   final String vehicleType;
   final int pricePerPerson;
+  final int numberOfSeats;
 
   RideDetail({
     required this.pickupLocation,
@@ -17,6 +18,7 @@ class RideDetail extends StatelessWidget {
     required this.departureDateTime,
     required this.vehicleType,
     required this.pricePerPerson,
+    required this.numberOfSeats,
   });
 
   @override
@@ -105,7 +107,16 @@ class RideDetail extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
                 ),
                 Text(
-                  pricePerPerson.toString() + ' MAD', // Add the plus sign here
+                  pricePerPerson.toString() + ' MAD',
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Availaibale seats',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+                ),
+                Text(
+                  numberOfSeats.toString(),
                   style: TextStyle(fontSize: 16),
                 ),
                 SizedBox(height: 20),

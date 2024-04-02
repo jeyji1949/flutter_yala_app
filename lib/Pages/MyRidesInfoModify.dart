@@ -41,7 +41,7 @@ class _MyProfileState extends State<MyRidesInfo> {
             leading: IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: () {
-                Navigator.pop(context); // Navigate back when arrow is pressed
+                Navigator.pop(context); // Navigate back to My Rides page
               },
             ),
           ),

@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:geocoder2/geocoder2.dart';
@@ -159,7 +161,7 @@ class _FindRidesPageState extends State<FindRidesPage> {
                                 hintText: "From",
                               ),
                               onTap: () async {
-                                performAutoComplete();
+                                performOriginAutoComplete();
                               },
                             ),
                           ),
@@ -181,7 +183,7 @@ class _FindRidesPageState extends State<FindRidesPage> {
                                 hintText: "To",
                               ),
                               onTap: () async {
-                                performAutoComplete();
+                                performDestinationAutoComplete();
                               },
                             ),
                           ),
@@ -384,6 +386,24 @@ class _FindRidesPageState extends State<FindRidesPage> {
       print('Distance: ${directions.distance}');
       print('Duration: ${directions.duration}');
 
+      // Fetch the current user's document from Firestore
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .get();
+
+      // Extract the username from the user document
+      String userName = userSnapshot['nom'];
+
+      // Store the searched ride information in Firestore
+      await FirebaseFirestore.instance.collection('searchForRides').add({
+        'departure': origin,
+        'destination': destination,
+        'userId': FirebaseAuth.instance.currentUser!.uid,
+        'userName': userName,
+      });
+
+      // Navigate to the next page after storing the information
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -417,33 +437,54 @@ class _FindRidesPageState extends State<FindRidesPage> {
     checkIfLocationPermissionAllowed();
   }
 
-  void performAutoComplete() async {
-    String kGoogleApiKey = mapKey;
+  void performOriginAutoComplete() async {
+    const kGoogleApiKey = "AIzaSyCrojA-B0fYuDVeW1vButIZxo1T9V0Ab7g";
 
-    // ignore: unused_local_variable
     Prediction? p = await PlacesAutocomplete.show(
-        context: context,
-        apiKey: kGoogleApiKey,
-        mode: Mode.overlay,
-        language: "fr",
-        offset: 0,
-        radius: 1000,
-        strictbounds: false,
-        region: "MAR",
-        types: [
-          "(cities)"
-        ],
-        components: [
-          flutter_google_places.Component(
-              flutter_google_places.Component.country, "MAR")
-        ]);
+      context: context,
+      apiKey: kGoogleApiKey,
+      mode: Mode.overlay,
+      language: "fr",
+      offset: 0,
+      radius: 1000,
+      strictbounds: false,
+      region: "MAR",
+      types: ["(cities)"],
+      components: [
+        flutter_google_places.Component(
+            flutter_google_places.Component.country, "MAR")
+      ],
+    );
+
     if (p != null) {
       setState(() {
-        if (originController.text.isEmpty) {
-          originController.text = p.description!;
-        } else {
-          destinationController.text = p.description!;
-        }
+        originController.text = p.description!;
+      });
+    }
+  }
+
+  void performDestinationAutoComplete() async {
+    const kGoogleApiKey = "AIzaSyCrojA-B0fYuDVeW1vButIZxo1T9V0Ab7g";
+
+    Prediction? p = await PlacesAutocomplete.show(
+      context: context,
+      apiKey: kGoogleApiKey,
+      mode: Mode.overlay,
+      language: "fr",
+      offset: 0,
+      radius: 1000,
+      strictbounds: false,
+      region: "MAR",
+      types: ["(cities)"],
+      components: [
+        flutter_google_places.Component(
+            flutter_google_places.Component.country, "MAR")
+      ],
+    );
+
+    if (p != null) {
+      setState(() {
+        destinationController.text = p.description!;
       });
     }
   }

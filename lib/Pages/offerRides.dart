@@ -260,6 +260,7 @@ class _OfferRidesPageState extends State<OfferRidesPage> {
     String departureDateTime = _departureDateTimeController.text;
     String vehicleType = _vehicleController.text;
     int pricePerPerson = int.tryParse(_farePerSeatController.text) ?? 0;
+    int numberOfSeats = availableSeats;
     String userID = FirebaseAuth.instance.currentUser!.uid;
 
     await FirebaseFirestore.instance.collection('rides').add({
@@ -269,6 +270,7 @@ class _OfferRidesPageState extends State<OfferRidesPage> {
       'departureDateTime': departureDateTime,
       'vehicleType': vehicleType,
       'pricePerPerson': pricePerPerson,
+      'numberOfSeats': numberOfSeats,
       'createAt': DateTime.now(),
     });
     Navigator.push(
@@ -280,6 +282,7 @@ class _OfferRidesPageState extends State<OfferRidesPage> {
           departureDateTime: departureDateTime,
           vehicleType: vehicleType,
           pricePerPerson: pricePerPerson,
+          numberOfSeats: numberOfSeats,
         ),
       ),
     );
